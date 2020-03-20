@@ -35,7 +35,7 @@
   "devDependencies": {
     "@babel/cli": "7.5.5",
     "@babel/register": "7.5.5",
-    "babel-plugin-istanbul": "^5.2.0",
+    "babel-plugin-istanbul": "^6.0.0",
     "chai": "3.5.0",
     "chai-as-promised": "6.0.0",
     "codecov": "1.0.1",
