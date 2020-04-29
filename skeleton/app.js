@@ -6,7 +6,6 @@ import { EventEmitter as Events } from 'events';
 import path from 'path';
 import fs from 'fs-plus';
 import shell from 'shelljs';
-import semver from 'semver';
 import assignIn from 'lodash/assignIn';
 import Module from './modules/module';
 import LoggerManager from './loggerManager';
@@ -25,15 +24,9 @@ export default class App {
     constructor() {
         this.startup = true;
         console.time('startup took');
-
-        // Fallback for Electron version lower than 5 which don't support registerSchemesAsPrivileged
-        if (semver.lt(process.versions.electron, '5.0.0-beta.0')) {
-            electron.protocol.registerStandardSchemes(['meteor'], { secure: true });
-        } else {
-            electron.protocol.registerSchemesAsPrivileged([
-                { scheme: 'meteor', privileges: { standard: true, secure: true } }
-            ]);
-        }
+        electron.protocol.registerSchemesAsPrivileged([
+            { scheme: 'meteor', privileges: { standard: true, secure: true } },
+        ]);
 
         // Until user defined handling will be loaded it is good to register something
         // temporarily.
@@ -42,19 +35,19 @@ export default class App {
         this.getOsSpecificValues();
 
         this.loggerManager = new LoggerManager(this);
-        this.l = this.loggerManager.getMainLogger();
+        this.log = this.loggerManager.getMainLogger();
 
-        this.l.info('app data dir is:', this.userDataDir);
+        this.log.info('app data dir is:', this.userDataDir);
 
         this.settings = {
             devTools: false
         };
 
-        this.desktopPath = DesktopPathResolver.resolveDesktopPath(this.userDataDir, this.l);
+        this.desktopPath = DesktopPathResolver.resolveDesktopPath(this.userDataDir, this.log);
         this.loadSettings();
 
         if ('meteorDesktopVersion' in this.settings) {
-            this.l.debug(`skeleton version ${this.settings.meteorDesktopVersion}`);
+            this.log.debug(`skeleton version ${this.settings.meteorDesktopVersion}`);
         }
 
         this.window = null;
@@ -90,13 +83,7 @@ export default class App {
         this.currentPort = null;
 
         if (this.isProduction() && !this.settings.prodDebug) {
-            // In case anything depends on this...
             process.env.NODE_ENV = 'production';
-        } else {
-            require('electron-debug')({
-                showDevTools: process.env.ELECTRON_ENV !== 'test',
-                enabled: (this.settings.devTools !== undefined) ? this.settings.devTools : true
-            });
         }
 
         this.prepareWindowSettings();
@@ -104,7 +91,7 @@ export default class App {
         this.meteorAppVersionChange = false;
         this.pendingDesktopVersion = null;
         this.eventsBus.on('newVersionReady', (version, desktopVersion) => {
-            this.l.debug(`received newVersionReady ${desktopVersion ? '(desktop update present)' : ''}`);
+            this.log.debug(`received newVersionReady ${desktopVersion ? '(desktop update present)' : ''}`);
             this.meteorAppVersionChange = true;
             this.pendingDesktopVersion = desktopVersion;
         });
@@ -120,7 +107,7 @@ export default class App {
      */
     applySingleInstance() {
         if ('singleInstance' in this.settings && this.settings.singleInstance) {
-            this.l.verbose('setting single instance mode');
+            this.log.verbose('setting single instance mode');
             const isSecondInstance = app.makeSingleInstance(() => {
                 // Someone tried to run a second instance, we should focus our window.
                 if (this.window) {
@@ -132,7 +119,7 @@ export default class App {
             });
 
             if (isSecondInstance) {
-                this.l.warn('current instance was terminated because another instance is running');
+                this.log.warn('current instance was terminated because another instance is running');
                 app.quit();
             }
         }
@@ -169,7 +156,7 @@ export default class App {
                 fs.readFileSync(join(this.desktopPath, 'settings.json')), 'UTF-8'
             );
         } catch (e) {
-            this.l.error(e);
+            this.log.error(e);
             dialog.showErrorBox('Application', 'Could not read settings.json. Please reinstall' +
                 ' this application.');
 
@@ -195,7 +182,7 @@ export default class App {
      */
     emitErrorAndLogIt(error) {
         try {
-            this.l.error(error);
+            this.log.error(error);
             if (this.eventsBus) {
                 this.emit('unhandledException', error);
             }
@@ -250,7 +237,7 @@ export default class App {
         if ('plugins' in this.settings) {
             Object.keys(this.settings.plugins).forEach((plugin) => {
                 try {
-                    this.l.debug(`loading plugin: ${plugin}`);
+                    this.log.debug(`loading plugin: ${plugin}`);
                     this.modules[plugin] = require(plugin).default;
 
                     const Plugin = this.modules[plugin];
@@ -269,7 +256,7 @@ export default class App {
                 } catch (e) {
                     // TODO: its probably safer not to exit here
                     // but a strategy for handling this would be better.
-                    this.l.error(`error while loading plugin: ${e}`);
+                    this.log.error(`error while loading plugin: ${e}`);
                 }
             });
         }
@@ -292,7 +279,7 @@ export default class App {
             moduleDirectories = fs.readdirSync(join(this.desktopPath, 'modules'));
         } catch (err) {
             if (err.code === 'ENOENT') {
-                this.l.debug(`not loading custom app modules because .desktop/modules isn't a directory`);
+                this.log.debug('not loading custom app modules because .desktop/modules isn\'t a directory');
             } else {
                 throw err;
             }
@@ -305,8 +292,8 @@ export default class App {
                     this.loadModule(false, modulePath, dirName);
                 }
             } catch (e) {
-                this.l.error(`error while trying to load module in dir ${dirName}: ${e}`);
-                this.l.debug(e.stack);
+                this.log.error(`error while trying to load module in dir ${dirName}: ${e}`);
+                this.log.debug(e.stack);
                 this.emit('moduleLoadFailed', dirName);
             }
         });
@@ -357,12 +344,12 @@ export default class App {
                     ({ moduleName } = result);
                 }
             } catch (e) {
-                this.l.warn(`could not load ${path.join(modulePath, 'module.json')}`);
+                this.log.warn(`could not load ${path.join(modulePath, 'module.json')}`);
             }
-            this.l.debug(`loading module: ${dirName} => ${moduleName}`);
+            this.log.debug(`loading module: ${dirName} => ${moduleName}`);
             indexPath = path.join(modulePath, 'index.js');
         } else {
-            this.l.debug(`loading internal module: ${moduleName}`);
+            this.log.debug(`loading internal module: ${moduleName}`);
             indexPath = modulePath;
         }
 
@@ -407,9 +394,9 @@ export default class App {
             });
             this.modules.desktop = this.desktop;
             this.emit('desktopLoaded', this.desktop);
-            this.l.debug('desktop loaded');
+            this.log.debug('desktop loaded');
         } catch (e) {
-            this.l.error('could not load desktop.js', e);
+            this.log.error('could not load desktop.js', e);
         }
     }
 
@@ -422,7 +409,7 @@ export default class App {
         try {
             this.eventsBus.emit(event, ...args);
         } catch (e) {
-            this.l.error(`error while emitting '${event}' event: ${e}`);
+            this.log.error(`error while emitting '${event}' event: ${e}`);
         }
     }
 
@@ -454,7 +441,7 @@ export default class App {
                 }
             });
         } catch (e) {
-            this.l.error(`error while emitting '${event}' event: ${e}`);
+            this.log.error(`error while emitting '${event}' event: ${e}`);
             return Promise.reject(e);
         }
         return Promise.all(promises);
@@ -468,7 +455,7 @@ export default class App {
      * Initializes local server.
      */
     onReady() {
-        this.l.info('ready fired');
+        this.log.info('ready fired');
 
         this.emit('beforePluginsLoad');
 
@@ -502,17 +489,32 @@ export default class App {
     }
 
     /**
+     * Load URL to renderer
+     * @param {string} url - the url which should be loaded
+     */
+    loadURL(url) {
+        if (this.settings.devTools && (!this.isProduction() || this.settings.prodDebug)) {
+            this.webContents.openDevTools();
+            this.webContents.on('devtools-opened', () => {
+                console.log('devtools-opened');
+                this.webContents.loadURL(url);
+            });
+        }
+        this.webContents.loadURL(url);
+    }
+
+    /**
      * On server restart point chrome to the new port.
      * @param {number} port - port on which the app is served
      */
     onServerRestarted(port) {
         this.emitAsync('beforeLoadUrl', port, this.currentPort)
             .catch(() => {
-                this.l.warning('some of beforeLoadUrl event listeners have failed');
+                this.log.warning('some of beforeLoadUrl event listeners have failed');
             })
             .then(() => {
                 this.currentPort = port;
-                this.webContents.loadURL('meteor://desktop');
+                this.loadURL('meteor://desktop');
             });
     }
 
@@ -603,7 +605,7 @@ export default class App {
         // Here we are catching reloads triggered by hot code push.
         this.webContents.on('will-navigate', (event, url) => {
             if (this.meteorAppVersionChange) {
-                this.l.debug(`will-navigate event to ${url}, assuming that this is HCP refresh`);
+                this.log.debug(`will-navigate event to ${url}, assuming that this is HCP refresh`);
                 // We need to block it.
                 event.preventDefault();
                 this.meteorAppVersionChange = false;
@@ -613,7 +615,7 @@ export default class App {
 
         // The app was loaded.
         this.webContents.on('did-stop-loading', () => {
-            this.l.debug('received did-stop-loading');
+            this.log.debug('received did-stop-loading');
             this.handleAppStartup(false);
         });
 
@@ -625,43 +627,27 @@ export default class App {
             this.modules.localServer
                 .getStreamProtocolResponse(url)
                 .then(res => callback(res))
-                .catch(e => {
+                .catch((e) => {
                     callback(this.modules.localServer.getServerErrorResponse());
                     this.log.error(`error while trying to fetch ${url}: ${e.toString()}`);
                 });
         };
-        const successCallback = () => {
-            this.l.debug('protocol meteor:// registered');
-
-            this.l.debug('opening meteor://desktop');
-            setTimeout(() => {
-                this.webContents.loadURL('meteor://desktop');
-            }, 100);
-        };
-        const failureCallback = error => {
-            this.l.error(`error while registering meteor:// protocol: ${error.toString()}`);
-            this.uncaughtExceptionHandler();
-        };
-        const callback = error => {
+        const callback = (error) => {
             if (error) {
-                failureCallback(error);
+                this.log.error(`error while registering meteor:// protocol: ${error.toString()}`);
+                this.uncaughtExceptionHandler();
                 return;
             }
 
-            successCallback();
+            this.log.debug('protocol meteor:// registered');
+
+            this.log.debug('opening meteor://desktop');
+            setTimeout(() => {
+                this.loadURL('meteor://desktop');
+            }, 100);
         };
 
-        // Fix "(node:12168) ProtocolDeprecateCallback: The callback argument of protocol module APIs is no longer needed."
-        if (parseInt(process.versions.electron) >= 7) {
-            try {
-                this.webContents.session.protocol.registerStreamProtocol(scheme, handler);
-                successCallback();
-            } catch (error) {
-                failureCallback(error);
-            }
-        } else {
-            this.webContents.session.protocol.registerStreamProtocol(scheme, handler, callback);
-        }
+        this.webContents.session.protocol.registerStreamProtocol(scheme, handler, callback);
     }
 
     handleAppStartup(startupDidCompleteEvent) {
@@ -669,30 +655,38 @@ export default class App {
             if (!startupDidCompleteEvent) {
                 return;
             }
-            this.l.debug('received startupDidComplete');
+            this.log.debug('received startupDidComplete');
         }
-        this.l.info('assuming meteor webapp has loaded');
+        this.log.info('assuming meteor webapp has loaded');
         if (this.startup) {
             console.timeEnd('startup took');
             this.startup = false;
         }
         if (!this.windowAlreadyLoaded) {
             if (this.meteorAppVersionChange) {
-                this.l.verbose('there is a new version downloaded already, performing HCP' +
+                this.log.verbose('there is a new version downloaded already, performing HCP' +
                     ' reset');
                 this.updateToNewVersion();
             } else {
                 this.windowAlreadyLoaded = true;
-                this.l.debug('showing main window');
+                this.log.debug('showing main window');
                 this.emit('beforeLoadFinish');
                 this.window.show();
                 this.window.focus();
-                if (this.settings.devtron && !this.isProduction()) {
-                    this.webContents.executeJavaScript('Desktop.devtron.install()');
+                if (!this.isProduction()) {
+                    const { devtron, redux, react, react_perf, meteor_devtools } = this.settings;
+                    const execute = this.webContents.executeJavaScript;
+
+                    if (devtron)
+                        execute('Desktop.devtron.install()');
+
+                    if (redux)
+
+
                 }
             }
         } else {
-            this.l.debug('window already loaded');
+            this.log.debug('window already loaded');
         }
         this.emit('loadingFinished');
     }
@@ -701,9 +695,9 @@ export default class App {
      * Updates to the new version received from hot code push.
      */
     updateToNewVersion() {
-        this.l.verbose('entering update to new HCP version procedure');
+        this.log.verbose('entering update to new HCP version procedure');
 
-        this.l.verbose(`${this.settings.desktopVersion} !== ${this.pendingDesktopVersion}`);
+        this.log.verbose(`${this.settings.desktopVersion} !== ${this.pendingDesktopVersion}`);
 
         const desktopUpdate = this.settings.desktopHCP &&
             this.settings.desktopVersion !== this.pendingDesktopVersion;
@@ -713,7 +707,7 @@ export default class App {
         );
 
         if (desktopUpdate) {
-            this.l.info('relaunching to use different version of desktop.asar');
+            this.log.info('relaunching to use different version of desktop.asar');
             // Give winston a chance to write the logs.
             setImmediate(() => {
                 app.relaunch({ args: process.argv.slice(1).concat('--hcp') });
@@ -721,11 +715,11 @@ export default class App {
             });
         } else {
             // Firing reset routine.
-            this.l.debug('firing onReset from autoupdate');
+            this.log.debug('firing onReset from autoupdate');
             this.modules.autoupdate.onReset();
 
             // Reinitialize the local server.
-            this.l.debug('resetting local server');
+            this.log.debug('resetting local server');
             this.localServer.init(
                 this.modules.autoupdate.getCurrentAssetBundle(),
                 this.desktopPath,

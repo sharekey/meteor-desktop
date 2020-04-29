@@ -1,6 +1,6 @@
 {
   "name": "@sharekey/meteor-desktop",
-  "version": "2.2.7",
+  "version": "3.0.0",
   "bin": {
     "meteor-desktop": "dist/bin/cli.js"
   },
@@ -20,7 +20,6 @@
     "report-coverage": "nyc report --reporter=lcov > coverage.lcov && codecov",
     "version": "node dist/scripts/propagateVersion.js && git add plugins",
     "postversion": "npm run publish-all",
-    "postinstall": "node dist/scripts/addToScripts || echo",
     "publish-plugins": "(cls || reset) && cd plugins/bundler && (meteor publish --release=METEOR@1.8.1) && cd ../watcher && (meteor publish --release=METEOR@1.8.1)",
     "prepublish": "npm run build || echo",
     "publish-all": "npm run publish-plugins && npm publish",
@@ -33,8 +32,8 @@
   "author": "Sharekey <admin@sharekey.com>",
   "license": "MIT",
   "devDependencies": {
-    "@babel/cli": "7.5.5",
-    "@babel/register": "7.5.5",
+    "@babel/cli": "7.8.4",
+    "@babel/register": "7.9.0",
     "babel-plugin-istanbul": "^5.2.0",
     "chai": "3.5.0",
     "chai-as-promised": "6.0.0",
@@ -71,12 +70,13 @@
     "sinon-chai": "2.10.0",
     "spectron": "8.0.0",
     "temp-dir": "2.0.0",
-    "watch": "1.0.2"
+    "watch": "1.0.2",
+    "electron-devtools-installer": "^3.0.0"
   },
   "dependencies": {
-    "@babel/core": "7.5.5",
-    "@babel/preset-env": "7.5.5",
-    "@babel/runtime": "7.5.5",
+    "@babel/core": "7.9.0",
+    "@babel/preset-env": "7.9.5",
+    "@babel/runtime": "7.9.2",
     "asar": "0.14.3",
     "cacache": "10.0.4",
     "commander": "2.17.1",

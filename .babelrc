@@ -6,6 +6,10 @@
             }
         }]
     ],
+    "plugins": [
+        "lodash",
+        "transform-class-properties"
+    ],
     "sourceMaps": true,
     "env": {
         "test": {

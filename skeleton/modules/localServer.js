@@ -7,7 +7,6 @@ import path from 'path';
 import fs from 'fs-plus';
 import send from 'send';
 import mime from 'mime';
-import { PassThrough } from 'stream';
 
 const oneYearInSeconds = 60 * 60 * 24 * 365;
 
@@ -46,25 +45,6 @@ function* iterate(array) {
 }
 
 /**
- * Read file content and wrap it to stream, based on examples from Electron docs:
- * https://electronjs.org/docs/api/protocol#protocolregisterstreamprotocolscheme-handler-completion
- *
- * @param {string} filePath            - path to the file being sent
- */
-function createReadStream(filePath) {
-    if (parseInt(process.versions.electron) >= 7) {
-        const rv = new PassThrough();
-        if (fs.existsSync(filePath)) {
-            rv.push(fs.readFileSync(filePath));
-        }
-        rv.push(null);
-        return rv;
-    }
-
-    return fs.createReadStream(filePath);
-}
-
-/**
  * Creates stream protocol response for a given file acting like it would come
  * from a real HTTP server.
  *
@@ -95,7 +75,7 @@ function createStreamProtocolResponse(filePath, res, beforeFinalize) {
     }
 
     res.setHeader('Connection', 'close');
-    res.setStream(createReadStream(filePath));
+    res.setStream(fs.createReadStream(filePath));
     res.setStatusCode(200);
 
     beforeFinalize();
@@ -246,7 +226,7 @@ export default class LocalServer {
          */
         function addSourceMapHeader(asset, res) {
             if (asset.sourceMapUrlPath) {
-                res.setHeader('X-SourceMap', asset.sourceMapUrlPath);
+                res.setHeader('SourceMap', asset.sourceMapUrlPath);
             }
         }
 
