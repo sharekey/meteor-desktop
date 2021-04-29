@@ -60,7 +60,7 @@
     "queue": "6.0.1",
     "reify": "0.20.12",
     "request": "2.88.0",
-    "rewire": "3.0.2",
+    "rewire": "5.0.0",
     "run-sequence": "1.2.2",
     "send": "0.17.1",
     "serve-static": "1.13.2",
