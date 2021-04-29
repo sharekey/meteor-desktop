@@ -76,7 +76,7 @@
     "@babel/core": "7.9.0",
     "@babel/preset-env": "7.9.5",
     "@babel/runtime": "7.9.2",
-    "asar": "0.14.3",
+    "asar": "3.0.3",
     "cacache": "10.0.4",
     "commander": "2.17.1",
     "cross-spawn": "5.0.1",
