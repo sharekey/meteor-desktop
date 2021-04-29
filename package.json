@@ -86,7 +86,7 @@
     "lodash": "4.17.20",
     "md5": "2.2.1",
     "mksnapshot": "0.3.5",
-    "node-fetch": "2.2.0",
+    "node-fetch": "2.6.1",
     "regenerator-runtime": "0.12.1",
     "rimraf": "3.0.0",
     "semver": "5.5.1",
