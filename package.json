@@ -87,7 +87,7 @@
     "md5": "2.2.1",
     "mksnapshot": "0.3.5",
     "node-fetch": "2.2.0",
-    "regenerator-runtime": "0.12.1",
+    "regenerator-runtime": "0.13.9",
     "rimraf": "3.0.0",
     "semver": "5.5.1",
     "shelljs": "0.8.4",
