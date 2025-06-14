@@ -81,7 +81,7 @@
     "cacache": "17.0.5",
     "commander": "2.20.3",
     "cross-spawn": "5.0.1",
-    "del": "2.2.2",
+    "del": "8.0.0",
     "install-local": "0.6.2",
     "isbinaryfile": "3.0.3",
     "lodash": "4.17.21",
@@ -90,7 +90,7 @@
     "regenerator-runtime": "0.12.1",
     "rimraf": "2.6.3",
     "semver": "5.7.2",
-    "shelljs": "0.8.5",
+    "shelljs": "0.9.0",
     "single-line-log": "1.1.2",
     "terser": "4.8.1"
   },
