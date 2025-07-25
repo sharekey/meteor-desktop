@@ -74,7 +74,7 @@
     "watch": "1.0.2"
   },
   "dependencies": {
-    "@babel/core": "7.18.13",
+    "@babel/core": "7.28.0",
     "@babel/preset-env": "7.13.8",
     "@babel/runtime": "7.18.9",
     "@electron/asar": "3.2.3",
