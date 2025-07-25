@@ -76,7 +76,7 @@
   "dependencies": {
     "@babel/core": "7.18.13",
     "@babel/preset-env": "7.13.8",
-    "@babel/runtime": "7.18.9",
+    "@babel/runtime": "7.27.6",
     "@electron/asar": "3.2.3",
     "cacache": "17.0.5",
     "commander": "2.20.3",
