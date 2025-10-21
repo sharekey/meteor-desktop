@@ -82,7 +82,7 @@
     "commander": "2.20.3",
     "cross-spawn": "5.0.1",
     "del": "2.2.2",
-    "install-local": "0.6.2",
+    "install-local": "4.0.0",
     "isbinaryfile": "3.0.3",
     "lodash": "4.17.21",
     "md5": "2.2.1",
