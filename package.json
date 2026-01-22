@@ -84,7 +84,7 @@
     "del": "2.2.2",
     "install-local": "0.6.2",
     "isbinaryfile": "3.0.3",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "md5": "2.2.1",
     "node-fetch": "2.6.9",
     "regenerator-runtime": "0.12.1",
